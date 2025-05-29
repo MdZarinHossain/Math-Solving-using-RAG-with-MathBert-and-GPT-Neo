@@ -58,7 +58,7 @@ def generate_embedding_mathbert(content):
     inputs = tokenizer_mathbert(content, return_tensors="pt", padding=True, truncation=True, max_length=512)
     with torch.no_grad():
         outputs = model_mathbert(**inputs)
-    embedding = outputs.last_hidden_state[:, 0, :].numpy()  
+    embedding = outputs.last_hidden_state[:, 0, :].numpy()
     return embedding
 
 import faiss
@@ -163,8 +163,8 @@ gpt_neo_model = AutoModelForCausalLM.from_pretrained(gpt_neo_model_name)
 
 
 def retrieve(query, k=3, max_context_length=1500):
-    query_embedding = generate_embedding_mathbert(query)  
-    distances, indices = faiss_index.search(np.array([query_embedding]), k)  
+    query_embedding = generate_embedding_mathbert(query)
+    distances, indices = faiss_index.search(np.array([query_embedding]), k)
     results = [embedding_map[i] for i in indices[0]]
 
     combined_context = "\n".join([item["content"] for item in results])
@@ -181,24 +181,24 @@ prompt = ChatPromptTemplate.from_template(template)
 def rag_pipeline(query):
     # Retrieve relevant contexts
     retrieved_contexts = retrieve(query, k=3)
-    context_text = "\n".join([retrieved_contexts])  
+    context_text = "\n".join([retrieved_contexts])
 
-  
+
     input_text = prompt.format(context=context_text, question=query)
-    print(f"Input text length (characters): {len(input_text)}")  
+    print(f"Input text length (characters): {len(input_text)}")
 
     inputs = tokenizer_gpt(
         input_text,
         return_tensors="pt",
         padding=True,
         truncation=True,
-        max_length=2048  
+        max_length=2048
     )
-    print(f"Tokenized input length (tokens): {inputs['input_ids'].shape[1]}")  
+    print(f"Tokenized input length (tokens): {inputs['input_ids'].shape[1]}")
 
     outputs = gpt_neo_model.generate(
         **inputs,
-        max_length=200,  
+        max_length=200,
         temperature=0.7
     )
 
